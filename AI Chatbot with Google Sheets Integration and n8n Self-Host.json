@@ -1,0 +1,190 @@
+{
+  "name": "AI Chatbot with Google Sheets Integration and n8n Self-Host",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "id": "ab47d70d-976d-40c7-9879-0d109b55da70",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        256,
+        432
+      ],
+      "webhookId": "4ca52029-c83c-4152-9e39-a30d3a61d01b"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "anda adalah seorang administrator kursus di suatu universitas ,tugas mu menjawab pertanyaan mengenai kursus Dan biaya yang di butuhkan ,,gunaka data pada google sheet untuk menjawab pertanyaan nya, jawab dengan kalimat yang jelas Dan rapih",
+        "options": {}
+      },
+      "id": "15c10339-8bed-4ceb-ae7e-bd7e570e301f",
+      "name": "Product Assistant AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        528,
+        352
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "871effe4-da68-4d94-a02c-0ba04510780e",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        464,
+        592
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1eHzu45dFZI8cqTr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "5ace7d3e-3678-4542-9ae9-e1117df11ca7",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Mengambil data produk pelatihan dan harga dari Google Sheets. Gunakan tool ini ketika pengguna bertanya tentang produk, harga, atau informasi pelatihan.",
+        "documentId": {
+          "__rl": true,
+          "value": "1gSn5Amd1rSrEQ8LxeXE073QsxZEEzh0AVbcEaPLXVJ4",
+          "mode": "list",
+          "cachedResultName": "n8n daffa",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gSn5Amd1rSrEQ8LxeXE073QsxZEEzh0AVbcEaPLXVJ4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1gSn5Amd1rSrEQ8LxeXE073QsxZEEzh0AVbcEaPLXVJ4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "44b3735a-3643-4cab-8352-29c98a4449e5",
+      "name": "Get Product Data from Sheets",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        688,
+        608
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LRsOL9YaHEtDV303",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n  \"reply\": {{$json[\"output\"]}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        352
+      ],
+      "id": "968407db-46f0-47d2-b1d5-99e6e2433af7",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Product Assistant AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Product Assistant AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Product Assistant AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product Data from Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Product Assistant AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Assistant AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "9abfe7ee-b348-4308-832c-2b14ffcf557c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f69c3898f7d1fb907ba326a4304718a26ad87d01989e5735655075c36eb97d87"
+  },
+  "id": "gzH9Jsrs9IOK8mqG",
+  "tags": []
+}
